@@ -7,23 +7,31 @@ const settings = {
   animate: true
 };
 
-const sketch = () => {
+const sketch = ({ context, width, height }) => {
 
   // Declaring variables empty, used only once across the project
   let x, y, w, h
   const num = 20
   const degrees = -30
 
+  const rects = []
+
+  for (let i = 0; i < num; i++) {
+    x = random.range(0, width)
+    y = random.range(0, height)
+    w = random.range(200, 600)
+    h = random.range(40, 200)
+
+    rects.push({ x, y, w, h })
+  }
+
   return ({ context, width, height }) => {
     context.fillStyle = 'white'
     context.fillRect(0, 0, width, height)
 
 
-    for (let i = 0; i < num; i++) {
-      x = random.range(0, width)
-      y = random.range(0, height)
-      w = random.range(200, 600)
-      h = random.range(40, 200)
+    rects.forEach(rect => {
+      const { x, y, w, h } = rect
 
       context.save()
       context.translate(x, y)
@@ -32,7 +40,7 @@ const sketch = () => {
       skewRect({ context, w, h, degrees })
       context.stroke()
       context.restore()
-    }
+    })
 
     // Below line creates a rectangle automatically
     // context.strokeRect(w * -0.5, h * -0.5, w, h);
@@ -77,7 +85,7 @@ const sketch = () => {
 
 
     // context.restore();
-  };
+  }
 }
 
 // Refactorized as a function
