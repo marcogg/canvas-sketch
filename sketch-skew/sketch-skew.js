@@ -9,9 +9,12 @@ const settings = {
   dimensions: [1080, 1080],
   animate: true
 };
+const randomNum = Date.now()
+const coolSeed = '2024.07.31-20.49.01'
 
 const sketch = ({ context, width, height }) => {
 
+  random.setSeed(randomNum)
   // Declaring variables empty, used only once across the project
   let x, y, w, h, fill, stroke, blend
   const num = 20
@@ -27,6 +30,7 @@ const sketch = ({ context, width, height }) => {
 
   // Creating a const to pick a random color
   const bgColor = random.pick(rectColors).hex
+
   // A default object with mask properties
   const mask = {
     radius: width * 0.4,
@@ -41,11 +45,9 @@ const sketch = ({ context, width, height }) => {
     w = random.range(200, 600)
     h = random.range(40, 200)
 
-    // fill = `rgba(0,0,${random.range(0, 255)})`
     fill = random.pick(rectColors).hex
     stroke = random.pick(rectColors).hex
 
-    // Updating the array of rect with properties in an object
     rects.push({ x, y, w, h, fill, stroke })
   }
 
@@ -58,13 +60,6 @@ const sketch = ({ context, width, height }) => {
     context.translate(mask.x, mask.y)
 
     drawPolygon({ context, radius: mask.radius, sides: mask.sides })
-    // Drawing a Triangle for a clipping mask
-    // context.beginPath()
-    // context.moveTo(0, -300)
-    // context.lineTo(300, 200)
-    // context.lineTo(-300, 200)
-    // context.closePath()
-
 
     context.clip()
 
@@ -105,50 +100,6 @@ const sketch = ({ context, width, height }) => {
 
       context.restore()
     })
-
-    // Below line creates a rectangle automatically
-    // context.strokeRect(w * -0.5, h * -0.5, w, h);
-
-    // Below this line creates a rectangle point by point
-    // context.beginPath();
-    // context.moveTo(w * -0.5, h * -0.5)
-    // context.lineTo(w * 0.5, h * -0.5)
-    // context.lineTo(w * 0.5, h * 0.5)
-    // context.lineTo(w * -0.5, h * 0.5)
-    // context.closePath();
-
-    // A cleaner way to view it starting fro 0
-    // context.beginPath();
-    // context.moveTo(0, 0);
-    // context.lineTo(w, 0);
-    // context.lineTo(w, h);
-    // context.lineTo(0, h)
-    // context.closePath();
-    // context.stroke();
-
-    // radius = 200
-    // angle = math.degToRad(-15)
-
-    // rx = Math.cos(angle) * w
-    // ry = Math.sin(angle) * w
-
-    // context.beginPath()
-    // context.moveTo(0, 0)
-    // context.lineTo(x, y)
-    // context.stroke()
-
-    // context.translate(rx * -0.5, (ry + h) * -0.5)
-
-    // context.beginPath();
-    // context.moveTo(0, 0)
-    // context.lineTo(rx, ry)
-    // context.lineTo(rx, ry + h)
-    // context.lineTo(0, h)
-    // context.closePath()
-    // context.stroke()
-
-
-    // context.restore();
 
     context.restore()
 
