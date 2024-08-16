@@ -11,8 +11,8 @@ const settings = {
 
 // There are many arguments comming by default, canvasSketch, height, width, are just a few, we just need to declare them as parameters in the fn
 const sketch = ({ width, height }) => {
-  const cols = 62
-  const rows = 8
+  const cols = 50
+  const rows = 50
   const numCells = cols * rows
 
   // Grid
@@ -100,7 +100,7 @@ const sketch = ({ width, height }) => {
 
     points.forEach(point => {
       // Hiding points
-      // point.draw(context)
+      point.draw(context)
     })
   };
 };
@@ -122,10 +122,10 @@ class Point {
   draw(context) {
     context.save()
     context.translate(this.x, this.y)
-    context.fillStyle = 'red'
+    context.fillStyle = this.color
 
     context.beginPath()
-    context.arc(0, 0, 10, 0, Math.PI * 2)
+    context.arc(0, 0, 2, 0, Math.PI * 2)
     context.fill()
 
     context.restore()
