@@ -1,6 +1,9 @@
 const canvasSketch = require('canvas-sketch')
 const random = require('canvas-sketch-util/random')
+const math = require('canvas-sketch-util/math')
 const eases = require('eases')
+const colormap = require('colormap')
+const interpolate = require('color-interpolate')
 
 const settings = {
   dimensions: [1080, 1080],
@@ -10,16 +13,41 @@ const settings = {
 const particles = []
 const cursor = { x: 9999, y: 9999 }
 
+const colors = colormap({
+  colormap: 'magma',
+  nshades: 20
+})
+
 let elCanvas
+let imgA, imgB
 
 // Render Function
 const sketch = ({ width, height, canvas }) => {
   let x, y, particle, radius
-  let pos = []
 
-  const numCircles = 15
-  const gapCircle = 8
-  const gapDot = 4
+  // We need a new canvas in order to get the color from it
+  const imgACanvas = document.createElement('canvas');
+  const imgAContext = imgACanvas.getContext('2d');
+
+  const imgBCanvas = document.createElement('canvas');
+  const imgBContext = imgBCanvas.getContext('2d');
+
+  imgACanvas.width = imgA.width;
+  imgACanvas.height = imgA.height;
+
+  imgBCanvas.width = imgB.width;
+  imgBCanvas.height = imgB.height;
+
+  imgAContext.drawImage(imgA, 0, 0);
+  imgBContext.drawImage(imgB, 0, 0);
+
+  // An Object that comes in browser that stores data from each pixel in image
+  const imgAData = imgAContext.getImageData(0, 0, imgA.width, imgA.height).data;
+  const imgBData = imgBContext.getImageData(0, 0, imgB.width, imgB.height).data;
+
+  const numCircles = 30
+  const gapCircle = 2
+  const gapDot = 2
   let dotRadius = 12
   let cirRadius = 0
   const fitRadius = dotRadius
@@ -28,45 +56,57 @@ const sketch = ({ width, height, canvas }) => {
   canvas.addEventListener('mousedown', onMouseDown)
 
   for (let i = 0; i < numCircles; i++) {
-    const circumference = Math.PI * 2 * cirRadius
-    const numFit = i ? Math.floor(circumference / (fitRadius * 2 + gapDot)) : 1
-    const fitSlice = Math.PI * 2 / numFit
+    const circumference = Math.PI * 2 * cirRadius;
+    const numFit = i ? Math.floor(circumference / (fitRadius * 2 + gapDot)) : 1;
+    const fitSlice = Math.PI * 2 / numFit;
+    let ix, iy, idx, r, g, b, colA, colB, colMap;
 
     for (let j = 0; j < numFit; j++) {
-      const theta = fitSlice * j
+      const theta = fitSlice * j;
 
-      x = Math.cos(theta) * cirRadius
-      y = Math.sin(theta) * cirRadius
+      x = Math.cos(theta) * cirRadius;
+      y = Math.sin(theta) * cirRadius;
 
       // Moving Cirle to center
       x += width * 0.5
       y += height * 0.5
 
-      radius = dotRadius
+      // Finding the corresponding color in image in the corresponding circle
+      ix = Math.floor((x / width) * imgA.width);
+      iy = Math.floor((y / height) * imgA.height);
+      idx = (iy * imgA.width + ix) * 4;
 
-      particle = new Particle({ x, y, radius })
+      r = imgAData[idx + 0];
+      g = imgAData[idx + 1];
+      b = imgAData[idx + 2];
+      colA = `rgb(${r}, ${g}, ${b})`;
+
+
+      // radius = dotRadius
+      radius = math.mapRange(r, 0, 255, 1, 12)
+
+      r = imgBData[idx + 0]
+      g = imgBData[idx + 1]
+      g = imgBData[idx + 2]
+      colB = `rgb(${r}, ${g}, ${b})`
+
+      colMap = interpolate([colA, colB])
+
+      particle = new Particle({ x, y, radius, colMap })
       particles.push(particle)
     }
     cirRadius += fitRadius * 2 + gapCircle
     dotRadius = (1 - eases.quadOut(i / numCircles)) * fitRadius
   }
 
-  // for (let i = 0; i < 200; i++) {
-  //   x = width * 0.5
-  //   y = height * 0.5
-
-  //   random.insideCircle(400, pos)
-  //   x += pos[0]
-  //   y += pos[1]
-
-  //   particle = new Particle({ x, y })
-
-  //   particles.push(particle)
-  // }
-
   return ({ context, width, height }) => {
-    context.fillStyle = 'black';
-    context.fillRect(0, 0, width, height);
+    context.fillStyle = 'black'
+    context.fillRect(0, 0, width, height)
+
+    context.drawImage(imgACanvas, 0, 0)
+
+    // Sorting bigger dots above smaller while animation
+    particles.sort((a, b) => a.scale - b.scale)
 
     // Creating a loop for particles
     particles.forEach(particle => {
@@ -105,10 +145,29 @@ const onMouseUp = () => {
   cursor.y = 9999;
 };
 
-canvasSketch(sketch, settings);
+// Taking color from Image
+const loadImage = async (url) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img)
+    img.onerror = () => reject()
+    img.src = url
+  })
+}
+
+const start = async () => {
+  imgA = await loadImage('img/1.jpg')
+  imgB = await loadImage('img/2.jpg')
+
+
+  canvasSketch(sketch, settings);
+}
+
+// STARTING
+start()
 
 class Particle {
-  constructor({ x, y, radius = 10 }) {
+  constructor({ x, y, radius = 10, colMap }) {
     // position
     this.x = x
     this.y = y
@@ -126,6 +185,11 @@ class Particle {
     this.iy = y
 
     this.radius = radius
+    this.scale = 1
+    this.colMap = colMap
+    this.color = colMap(0)
+
+
     this.minDist = random.range(100, 200)
     this.pushFactor = random.range(0.01, 0.02)
     this.pullFactor = random.range(0.002, 0.006)
@@ -134,13 +198,22 @@ class Particle {
 
   update() {
     let dx, dy, dd, distDelta
+    // let idxColor
 
     // pull force
     dx = this.ix - this.x
     dy = this.iy - this.y
+    dd = Math.sqrt(dx * dx + dy * dy)
 
     this.ax = dx * this.pullFactor
     this.ay = dy * this.pullFactor
+
+    this.scale = math.mapRange(dd, 0, 200, 1, 5)
+    // FORMER COLOR ASSIGNATION
+    // idxColor = Math.floor(math.mapRange(dd, 0, 200, 0, colors.length - 1, true))
+    // this.color = colors[idxColor]
+
+    this.color = this.colMap(math.mapRange(dd, 0, 200, 0, 1, true))
 
     // push Force
     dx = this.x - cursor.x
@@ -167,10 +240,10 @@ class Particle {
   draw(context) {
     context.save()
     context.translate(this.x, this.y)
-    context.fillStyle = 'white'
+    context.fillStyle = this.color
 
     context.beginPath()
-    context.arc(0, 0, this.radius, 0, Math.PI * 2)
+    context.arc(0, 0, this.radius * this.scale, 0, Math.PI * 2)
     context.fill()
 
     context.restore()
