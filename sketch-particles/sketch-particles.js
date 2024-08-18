@@ -1,5 +1,6 @@
 const canvasSketch = require('canvas-sketch')
 const random = require('canvas-sketch-util/random')
+const eases = require('eases')
 
 const settings = {
   dimensions: [1080, 1080],
@@ -13,24 +14,55 @@ let elCanvas
 
 // Render Function
 const sketch = ({ width, height, canvas }) => {
-  let x, y, particle
+  let x, y, particle, radius
   let pos = []
+
+  const numCircles = 15
+  const gapCircle = 8
+  const gapDot = 4
+  let dotRadius = 12
+  let cirRadius = 0
+  const fitRadius = dotRadius
 
   elCanvas = canvas
   canvas.addEventListener('mousedown', onMouseDown)
 
-  for (let i = 0; i < 200; i++) {
-    x = width * 0.5
-    y = height * 0.5
+  for (let i = 0; i < numCircles; i++) {
+    const circumference = Math.PI * 2 * cirRadius
+    const numFit = i ? Math.floor(circumference / (fitRadius * 2 + gapDot)) : 1
+    const fitSlice = Math.PI * 2 / numFit
 
-    random.insideCircle(500, pos)
-    x += pos[0]
-    y += pos[1]
+    for (let j = 0; j < numFit; j++) {
+      const theta = fitSlice * j
 
-    particle = new Particle({ x, y })
+      x = Math.cos(theta) * cirRadius
+      y = Math.sin(theta) * cirRadius
 
-    particles.push(particle)
+      // Moving Cirle to center
+      x += width * 0.5
+      y += height * 0.5
+
+      radius = dotRadius
+
+      particle = new Particle({ x, y, radius })
+      particles.push(particle)
+    }
+    cirRadius += fitRadius * 2 + gapCircle
+    dotRadius = (1 - eases.quadOut(i / numCircles)) * fitRadius
   }
+
+  // for (let i = 0; i < 200; i++) {
+  //   x = width * 0.5
+  //   y = height * 0.5
+
+  //   random.insideCircle(400, pos)
+  //   x += pos[0]
+  //   y += pos[1]
+
+  //   particle = new Particle({ x, y })
+
+  //   particles.push(particle)
+  // }
 
   return ({ context, width, height }) => {
     context.fillStyle = 'black';
@@ -41,8 +73,8 @@ const sketch = ({ width, height, canvas }) => {
       particle.update()
       particle.draw(context)
     })
-  };
-};
+  }
+}
 // End Render Function
 
 // OnMouseDown fn
@@ -94,10 +126,10 @@ class Particle {
     this.iy = y
 
     this.radius = radius
-    this.minDist = 100
-    this.pushFactor = 0.02
-    this.pullFactor = 0.004
-    this.dampFactor = 0.95
+    this.minDist = random.range(100, 200)
+    this.pushFactor = random.range(0.01, 0.02)
+    this.pullFactor = random.range(0.002, 0.006)
+    this.dampFactor = random.range(0.90, 0.95)
   }
 
   update() {
