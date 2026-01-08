@@ -1,0 +1,17 @@
+{
+  "name": "canvas-test",
+  "version": "1.0.0",
+  "description": "Playing around canvas sketch",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "canvas-sketch": "^0.7.7",
+    "canvas-sketch-cli": "^1.15.0",
+    "canvas-sketch-util": "^1.10.0"
+  }
+}
