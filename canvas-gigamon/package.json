@@ -1,0 +1,17 @@
+{
+  "name": "canvas-gigamon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gigamon.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "canvas-sketch": "^0.7.7",
+    "eases": "^1.0.8"
+  }
+}

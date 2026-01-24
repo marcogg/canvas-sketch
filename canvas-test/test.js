@@ -3,13 +3,14 @@ import canvasSketch from "canvas-sketch"
 
 const settings = {
   dimensions: [1000, 1000],
+  animate:true
 };
 
 const sketch = () => {
 
     // Creating cirlces
     const lines = []
-    const numLines = 10
+    const numLines = 100
     let lineWidth
 
     for (let i = 0; i<numLines; i++){
@@ -19,11 +20,10 @@ const sketch = () => {
         let endX = Math.floor(Math.random() * 1000)
         let endY = Math.floor(Math.random() * 1000)
         lineWidth = Math.floor(Math.random())
-        let color= 'white'
         console.log(beginX, beginY, endX, endY)
         
 
-        lines.push(new Line ({beginX, beginY, endX, endY, lineWidth, color}))
+        lines.push(new Line ({beginX, beginY, endX, endY, lineWidth}))
       }
 
       
@@ -39,7 +39,7 @@ const sketch = () => {
 }
 
 class Line {
-  constructor({ beginX, beginY, endX, endY, lineWidth, color }) {
+  constructor({ beginX, beginY, endX, endY, lineWidth }) {
     this.beginX = beginX
     this.beginY = beginY
     this.endX = endX
@@ -53,7 +53,7 @@ class Line {
     context.lineWidth = this.lineWidth
     context.moveTo(this.beginX, this.beginY)
     context.lineTo(this.endX, this.endY)
-    context.strokeStyle ='white'
+    context.strokeStyle ='#12ef78'
     context.stroke()
     context.restore()
   }

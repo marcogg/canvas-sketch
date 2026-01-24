@@ -11,8 +11,8 @@ const settings = {
 
 // There are many arguments comming by default, canvasSketch, height, width, are just a few, we just need to declare them as parameters in the fn
 const sketch = ({ width, height }) => {
-  const cols = 50
-  const rows = 50
+  const cols = 20
+  const rows = 20
   const numCells = cols * rows
 
   // Grid
